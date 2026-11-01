@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Сайты-визитки, сайты для бизнеса, интернет-магазины, монтаж видео и превью. Гарантия исправлений 12 месяцев.">
+<meta name="theme-color" content="#000000">
+<title>Сайты и видео для бизнеса</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/"
+  }
+}
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --fg:#fff;
+  --bg:#000;
+  --muted:rgba(255,255,255,.7);
+  --line:rgba(255,255,255,.16);
+  --px:0;--py:0;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+html{background:#000;color:#fff;scroll-behavior:smooth}
+body{
+  background:#000;color:#fff;
+  font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  padding-top:env(safe-area-inset-top,0px);
+}
+:focus-visible{outline:2px solid #fff;outline-offset:4px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none}
+main,footer{position:relative;z-index:1}
+
+/* ---------- Custom cursor (desktop only) ---------- */
+.cursor{
+  position:fixed;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;
+  border:1px solid #fff;border-radius:50%;pointer-events:none;z-index:50;
+  mix-blend-mode:difference;opacity:0;
+  transition:width .4s var(--ease),height .4s var(--ease),margin .4s var(--ease),opacity .3s,background-color .3s;
+}
+.cursor.on{opacity:1}
+.cursor.hover{width:76px;height:76px;margin:-38px 0 0 -38px;background:#fff}
+@media (hover:none){.cursor{display:none}}
+
+/* ---------- Hero ---------- */
+.hero{
+  min-height:100vh;display:flex;align-items:center;
+  padding:120px 8vw 150px;position:relative;perspective:1200px;
+}
+.hero-text{
+  max-width:720px;transform-style:preserve-3d;
+  transform:rotateY(calc(var(--px) * 5deg)) rotateX(calc(var(--py) * -4deg));
+  transition:transform .8s var(--ease);
+}
+.title{
+  font-size:clamp(46px,7vw,112px);line-height:.92;font-weight:800;font-stretch:125%;letter-spacing:-.03em;
+}
+.ln{display:block;perspective:800px}
+.word{display:inline-block;white-space:nowrap}
+.ch{
+  display:inline-block;transform-origin:50% 100%;
+  opacity:0;transform:translate3d(0,.45em,0) rotateX(-85deg);
+  animation:charIn 1.1s var(--ease) forwards;
+  animation-delay:calc(var(--i) * 26ms + 150ms);
+}
+@keyframes charIn{to{opacity:1;transform:none}}
+
+.lead{
+  margin-top:34px;color:var(--muted);font-size:19px;line-height:1.65;max-width:500px;
+  opacity:0;animation:fade 1.2s .9s var(--ease) forwards;
+}
+.actions{
+  display:flex;gap:14px;flex-wrap:wrap;margin-top:44px;
+  opacity:0;animation:fade 1.2s 1.05s var(--ease) forwards;
+}
+.btn{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  min-height:56px;padding:0 30px;border:1px solid #fff;color:#fff;background:rgba(0,0,0,.4);
+  font:inherit;font-weight:600;font-size:16px;text-decoration:none;cursor:pointer;
+  overflow:hidden;isolation:isolate;
+  transform:translate3d(var(--mx,0px),var(--my,0px),0);
+  transition:color .4s var(--ease),transform .5s var(--ease);
+}
+.btn::before{
+  content:"";position:absolute;inset:0;background:#fff;z-index:-1;
+  transform:scaleX(0);transform-origin:left;transition:transform .55s var(--ease);
+}
+.btn:hover{color:#000}
+.btn:hover::before{transform:scaleX(1)}
+.btn-solid{background:#fff;color:#000}
+.btn-solid::before{background:#000}
+.btn-solid:hover{color:#fff}
+.btn svg{width:22px;height:22px;margin-right:12px;flex:0 0 auto}
+@keyframes fade{to{opacity:1}}
+
+.scroll-hint{
+  position:absolute;bottom:32px;left:8vw;color:var(--muted);font-size:14px;
+  display:flex;align-items:center;gap:14px;
+}
+.scroll-hint::before{
+  content:"";width:48px;height:1px;background:#fff;transform-origin:left;
+  animation:line 2.2s ease-in-out infinite;
+}
+@keyframes line{0%{transform:scaleX(0)}50%{transform:scaleX(1)}100%{transform:scaleX(1);opacity:0}}
+
+/* ---------- Marquee with scroll-velocity skew ---------- */
+.marquee{
+  position:relative;z-index:1;overflow:hidden;background:#000;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:30px 0;
+}
+.skew{transform:skewX(calc(var(--skew,0) * 1deg));will-change:transform}
+.track{display:flex;align-items:center;width:max-content;animation:marq 34s linear infinite}
+.track span{
+  font-size:clamp(30px,4.4vw,62px);font-weight:700;font-stretch:115%;letter-spacing:-.01em;
+  white-space:nowrap;padding:0 30px;
+}
+.track i{width:14px;height:14px;background:#fff;transform:rotate(45deg);flex:0 0 auto}
+@keyframes marq{to{transform:translate3d(-50%,0,0)}}
+
+/* ---------- 3D tilt ---------- */
+[data-tilt]{
+  transform:perspective(1000px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+  transition:transform .45s var(--ease),background .3s,color .3s;
+  will-change:transform;
+}
+
+/* ---------- Scroll reveals ---------- */
+.js .reveal{
+  opacity:0;transform:perspective(1200px) translate3d(0,48px,0) rotateX(12deg);transform-origin:50% 100%;
+  transition:opacity 1s var(--ease),transform 1.2s var(--ease);
+}
+.js .reveal.in{opacity:1;transform:none}
+.js .reveal:nth-child(2){transition-delay:.12s}
+.js .reveal:nth-child(3){transition-delay:.24s}
+.js .reveal:nth-child(4){transition-delay:.36s}
+.wd{
+  display:inline-block;opacity:0;transform:translate3d(0,.5em,0) rotateX(-70deg);transform-origin:50% 100%;
+  transition:opacity 1s var(--ease),transform 1.2s var(--ease);
+  transition-delay:calc(var(--i) * 80ms);
+}
+.split-in.in .wd{opacity:1;transform:none}
+
+/* ---------- Menu ---------- */
+.menu{padding:140px 8vw 40px;position:relative;perspective:1600px}
+.menu-list{list-style:none;border-top:1px solid var(--line);max-width:1180px}
+.menu-item{border-bottom:1px solid var(--line)}
+.menu-btn{
+  position:relative;width:100%;min-height:112px;display:flex;align-items:center;justify-content:space-between;gap:24px;
+  padding:28px 0;background:none;border:0;color:#fff;font:inherit;text-align:left;cursor:pointer;
+  overflow:hidden;isolation:isolate;transition:padding .5s var(--ease),color .4s var(--ease);
+}
+.menu-btn::before{
+  content:"";position:absolute;inset:0;background:#fff;z-index:-1;
+  transform:scaleY(0);transform-origin:bottom;transition:transform .6s var(--ease);
+}
+.menu-btn:hover::before,.menu-btn[aria-expanded="true"]::before{transform:scaleY(1)}
+.menu-btn:hover,.menu-btn[aria-expanded="true"]{color:#000;padding-left:22px;padding-right:22px}
+.menu-title{display:block;font-size:clamp(28px,4.2vw,58px);font-weight:700;font-stretch:115%;line-height:1.02}
+.menu-sub{display:block;margin-top:12px;font-size:16px;color:var(--muted);transition:color .4s}
+.menu-btn:hover .menu-sub,.menu-btn[aria-expanded="true"] .menu-sub{color:rgba(0,0,0,.7)}
+.plus{flex:0 0 auto;position:relative;width:32px;height:32px}
+.plus::before,.plus::after{
+  content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:currentColor;
+  transform:translateY(-50%);transition:transform .45s var(--ease);
+}
+.plus::after{transform:translateY(-50%) rotate(90deg)}
+.menu-btn[aria-expanded="true"] .plus::after{transform:translateY(-50%) rotate(0deg) scaleX(0)}
+
+/* ---------- Panels ---------- */
+.panels{padding:0 8vw 140px;position:relative;perspective:1600px}
+.panel{display:none;padding-top:100px;max-width:1180px;transform-origin:50% 0}
+.panel.active{display:block;animation:enter3d 1.1s var(--ease)}
+@keyframes enter3d{
+  from{opacity:0;transform:perspective(1600px) rotateX(-22deg) translate3d(0,60px,-200px)}
+  to{opacity:1;transform:none}
+}
+.panel h2{
+  font-size:clamp(34px,4.6vw,64px);font-weight:700;font-stretch:115%;line-height:1;letter-spacing:-.01em;margin-bottom:52px;
+}
+
+/* Services */
+.price-list{list-style:none;border-top:1px solid var(--line);perspective:900px}
+.price-row{
+  position:relative;overflow:hidden;display:flex;justify-content:space-between;align-items:baseline;gap:24px;
+  padding:28px 0;border-bottom:1px solid var(--line);font-size:21px;
+  opacity:0;transform-origin:50% 0;
+}
+.price-row::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
+  transform:translateX(-100%);transition:transform 1s var(--ease);
+}
+.price-row:hover::before{transform:translateX(100%)}
+.price-row > *{position:relative}
+.panel.active .price-row{animation:rowIn .9s var(--ease) forwards}
+.panel.active .price-row:nth-child(2){animation-delay:.08s}
+.panel.active .price-row:nth-child(3){animation-delay:.16s}
+.panel.active .price-row:nth-child(4){animation-delay:.24s}
+.panel.active .price-row:nth-child(5){animation-delay:.32s}
+.panel.active .price-row:nth-child(6){animation-delay:.4s}
+@keyframes rowIn{from{opacity:0;transform:rotateX(-75deg) translateZ(-40px)}to{opacity:1;transform:none}}
+.price-row .price{font-weight:700;font-stretch:112%;white-space:nowrap;font-variant-numeric:tabular-nums}
+.price-row .price small{font-weight:400;font-size:14px;color:var(--muted);margin-right:10px;font-stretch:100%}
+
+.note{
+  margin-top:48px;max-width:780px;padding-top:24px;border-top:1px solid #fff;
+  color:var(--muted);font-size:17px;line-height:1.7;
+}
+.note strong{color:#fff;font-weight:600}
+.note + .note{margin-top:28px;border-top-color:var(--line)}
+
+/* Works: 3D ring carousel */
+.stage{
+  height:460px;display:flex;align-items:center;justify-content:center;
+  perspective:1400px;
+}
+.ring{
+  position:relative;width:300px;height:280px;transform-style:preserve-3d;
+  transition:transform 1.1s var(--ease);
+}
+.tile{
+  position:absolute;left:0;top:0;width:300px;height:280px;
+  transform:rotateY(var(--a)) translateZ(260px);backface-visibility:hidden;
+  border:1px solid rgba(255,255,255,.3);background:#050505;
+  padding:26px;display:flex;flex-direction:column;justify-content:flex-end;
+  box-shadow:0 0 60px rgba(255,255,255,.06) inset;
+}
+.tile h3{font-size:24px;font-weight:600;font-stretch:110%;margin-bottom:8px}
+.tile p{color:var(--muted);font-size:15px;line-height:1.5}
+.ring-ctrl{display:flex;justify-content:center;gap:14px;margin-top:36px}
+.ring-ctrl button{
+  width:58px;height:58px;display:grid;place-items:center;background:#000;color:#fff;
+  border:1px solid #fff;cursor:pointer;transition:background .3s,color .3s;
+}
+.ring-ctrl button:hover{background:#fff;color:#000}
+.ring-ctrl svg{width:22px;height:22px}
+
+/* Help */
+.help{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 64px}
+.help-item{border-top:1px solid var(--line);padding:32px 0 56px;transition:transform .45s var(--ease)}
+.help-item h3{font-size:24px;font-weight:600;font-stretch:110%;line-height:1.2;margin-bottom:14px}
+.help-item p{color:var(--muted);font-size:17px;line-height:1.7}
+
+/* ---------- Order ---------- */
+.order{
+  padding:140px 8vw 160px;position:relative;border-top:1px solid var(--line);
+  background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.9) 35%);
+}
+.order h2{
+  font-size:clamp(42px,6.8vw,104px);font-weight:800;font-stretch:125%;line-height:.94;letter-spacing:-.03em;max-width:1000px;
+}
+.order p.lead2{margin-top:34px;max-width:580px;color:var(--muted);font-size:18px;line-height:1.7}
+.order .actions{margin-top:46px;opacity:1;animation:none}
+.handle{margin-top:24px;color:var(--muted);font-size:15px}
+
+footer{
+  padding:44px 8vw;border-top:1px solid var(--line);background:#000;
+  color:var(--muted);font-size:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+}
+footer a{color:#fff;text-decoration:none;border-bottom:1px solid var(--line)}
+footer a:hover{border-bottom-color:#fff}
+
+/* ---------- Responsive ---------- */
+@media (max-width:760px){
+  .hero{align-items:flex-end;padding:50vh 6vw 120px}
+  .scroll-hint{left:6vw}
+  .menu,.panels,.order{padding-left:6vw;padding-right:6vw}
+  .menu-btn{min-height:96px}
+  .price-row{flex-direction:column;align-items:flex-start;gap:10px;font-size:19px}
+  .btn{flex:1 1 100%}
+  .stage{height:400px}
+  .tile{width:260px;height:250px}
+  .ring{width:260px;height:250px}
+  .tile{transform:rotateY(var(--a)) translateZ(230px)}
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  .track{animation:none}
+  .ch{opacity:1;transform:none;animation:none}
+  .wd{opacity:1;transform:none}
+  .lead,.actions,.price-row{opacity:1;transform:none}
+  .js .reveal{opacity:1;transform:none}
+  .skew,.hero-text,[data-tilt],.btn{transform:none!important}
+}
+</style>
+</head>
+<body>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="cursor" aria-hidden="true"></div>
+
+<main>
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="hero-text">
+      <h1 class="title">
+        <span class="ln" data-split>Сайты и видео</span>
+        <span class="ln" data-split>для бизнеса,</span>
+        <span class="ln" data-split>которые приносят заявки</span>
+      </h1>
+      <p class="lead">Делаю сайты-визитки, каталоги и интернет-магазины, монтирую видео и делаю превью. Каждый проект со продуманной структурой и аккуратной анимацией, чтобы клиент сразу понимал, что вы предлагаете.</p>
+      <div class="actions">
+        <a class="btn" href="#menu" data-magnetic>Смотреть дальше</a>
+        <a class="btn btn-solid" href="https://www.instagram.com/veltrix.webst/" target="_blank" rel="noopener noreferrer" data-magnetic>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+          Заказать в Instagram
+        </a>
+      </div>
+    </div>
+    <div class="scroll-hint" aria-hidden="true">Листайте вниз</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee" aria-hidden="true">
+    <div class="skew" id="skew">
+      <div class="track">
+        <span>Сайты</span><i></i><span>Монтаж видео</span><i></i><span>Превью</span><i></i><span>Интернет-магазины</span><i></i><span>Айдентика</span><i></i><span>Редизайн</span><i></i>
+        <span>Сайты</span><i></i><span>Монтаж видео</span><i></i><span>Превью</span><i></i><span>Интернет-магазины</span><i></i><span>Айдентика</span><i></i><span>Редизайн</span><i></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <section class="menu" id="menu" aria-labelledby="menu-heading">
+    <h2 id="menu-heading" class="sr-only">Разделы сайта</h2>
+    <ul class="menu-list">
+      <li class="menu-item reveal">
+        <button class="menu-btn" type="button" data-tilt aria-expanded="false" aria-controls="services" data-panel="services">
+          <span>
+            <span class="menu-title">Мои услуги и стоимость</span>
+            <span class="menu-sub">Что я делаю и сколько это стоит</span>
+          </span>
+          <span class="plus" aria-hidden="true"></span>
+        </button>
+      </li>
+      <li class="menu-item reveal">
+        <button class="menu-btn" type="button" data-tilt aria-expanded="false" aria-controls="works" data-panel="works">
+          <span>
+            <span class="menu-title">Мои работы</span>
+            <span class="menu-sub">Примеры сайтов, монтажа и превью</span>
+          </span>
+          <span class="plus" aria-hidden="true"></span>
+        </button>
+      </li>
+      <li class="menu-item reveal">
+        <button class="menu-btn" type="button" data-tilt aria-expanded="false" aria-controls="help" data-panel="help">
+          <span>
+            <span class="menu-title">Чем я помогаю бизнесу</span>
+            <span class="menu-sub">Как работа приносит результат</span>
+          </span>
+          <span class="plus" aria-hidden="true"></span>
+        </button>
+      </li>
+    </ul>
+  </section>
+
+  <!-- PANELS -->
+  <section class="panels">
+
+    <div class="panel" id="services">
+      <h2>Мои услуги и стоимость</h2>
+      <ul class="price-list">
+        <li class="price-row"><span>Сайт-визитка</span><span class="price"><small>от</small>39 900 ₸</span></li>
+        <li class="price-row"><span>Сайт для бизнеса</span><span class="price"><small>от</small>69 900 ₸</span></li>
+        <li class="price-row"><span>Сайт-каталог товаров</span><span class="price"><small>от</small>79 900 ₸</span></li>
+        <li class="price-row"><span>Интернет-магазин</span><span class="price"><small>от</small>149 900 ₸</span></li>
+        <li class="price-row"><span>Редизайн существующего сайта</span><span class="price"><small>от</small>19 900 ₸</span></li>
+        <li class="price-row"><span>Исправление ошибок на существующем сайте</span><span class="price"><small>от</small>4 990 ₸</span></li>
+      </ul>
+      <p class="note"><strong>Исправление ошибок.</strong> Нужно, если сайт уже есть, работает криво, и непонятно, в чём причина. Я найду ошибку и исправлю её. Если сайт делал я, ошибки исправляю бесплатно в течение 12 месяцев.</p>
+      <p class="note"><strong>Оплата после выполнения работы.</strong> Деньги беру только тогда, когда клиент одобрил результат. Если что-то нужно доработать, вношу правки до полного одобрения.</p>
+      <p class="note"><strong>Гарантия 12 месяцев.</strong> Если в работе сайта найдутся ошибки, исправлю их бесплатно в течение 12 месяцев после сдачи.</p>
+    </div>
+
+    <div class="panel" id="works">
+      <h2>Мои работы</h2>
+      <div class="stage" role="region" aria-label="Примеры работ">
+        <div class="ring" id="ring">
+          <figure class="tile" style="--a:0deg"><h3>Сайт-визитка</h3><p>Пример будет добавлен</p></figure>
+          <figure class="tile" style="--a:90deg"><h3>Сайт для бизнеса</h3><p>Пример будет добавлен</p></figure>
+          <figure class="tile" style="--a:180deg"><h3>Интернет-магазин</h3><p>Пример будет добавлен</p></figure>
+          <figure class="tile" style="--a:270deg"><h3>Монтаж видео</h3><p>Пример будет добавлен</p></figure>
+        </div>
+      </div>
+      <div class="ring-ctrl">
+        <button type="button" id="prev" aria-label="Предыдущая работа">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <button type="button" id="next" aria-label="Следующая работа">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="panel" id="help">
+      <h2>Чем я помогаю бизнесу</h2>
+      <div class="help">
+        <div class="help-item reveal" data-tilt>
+          <h3>Сайты, которым доверяют</h3>
+          <p>Понятная структура, сильные заголовки и спокойный дизайн. Клиент за минуту понимает, что вы делаете, и знает, как с вами связаться.</p>
+        </div>
+        <div class="help-item reveal" data-tilt>
+          <h3>Интернет-магазины и каталоги</h3>
+          <p>Удобные карточки товаров и быстрый путь до оплаты, без лишних шагов для покупателя.</p>
+        </div>
+        <div class="help-item reveal" data-tilt>
+          <h3>Видео и превью</h3>
+          <p>Монтаж роликов и обложки, которые привлекают внимание и держат зрителя до конца.</p>
+        </div>
+        <div class="help-item reveal" data-tilt>
+          <h3>Айдентика и аватар</h3>
+          <p>Логотип, аватарки и единый стиль, по которому бизнес узнают в соцсетях и на сайте.</p>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ORDER -->
+  <section class="order" id="order">
+    <h2 class="split-in" data-split-words>12 месяцев бесплатных исправлений</h2>
+    <p class="lead2 reveal">Если после сдачи в работе сайта появятся ошибки, я исправлю их бесплатно в течение года. Оплата только после того, как вы одобрили результат.</p>
+    <div class="actions reveal">
+      <a class="btn btn-solid" href="https://www.instagram.com/veltrix.webst/" target="_blank" rel="noopener noreferrer" data-magnetic>
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+        Написать в Instagram
+      </a>
+    </div>
+    <p class="handle reveal">@veltrix.webst</p>
+  </section>
+</main>
+
+<footer>
+  <span>© 2026</span>
+  <a href="https://www.instagram.com/veltrix.webst/" target="_blank" rel="noopener noreferrer">Instagram @veltrix.webst</a>
+</footer>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const root = document.documentElement;
+root.classList.add('js');
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canFine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+const SPEED = reduceMotion ? 0.25 : 1;
+
+const smooth01 = (a, b, x) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+
+/* ================= TEXT SPLITTING ================= */
+// Wraps letters (mode 'chars') or words (mode 'words') in spans for staggered 3D entrances.
+// The original text stays available to screen readers.
+function splitText(el, mode, start = 0) {
+  const text = el.textContent.trim();
+  el.textContent = '';
+  const sr = document.createElement('span');
+  sr.className = 'sr-only';
+  sr.textContent = text;
+  el.appendChild(sr);
+
+  let i = start;
+  const words = text.split(/\s+/);
+  words.forEach((word, wi) => {
+    const w = document.createElement('span');
+    w.className = mode === 'chars' ? 'word' : 'wd';
+    w.setAttribute('aria-hidden', 'true');
+    if (mode === 'chars') {
+      for (const ch of word) {
+        const c = document.createElement('span');
+        c.className = 'ch';
+        c.textContent = ch;
+        c.style.setProperty('--i', i++);
+        w.appendChild(c);
+      }
+    } else {
+      w.textContent = word;
+      w.style.setProperty('--i', i++);
+    }
+    el.appendChild(w);
+    if (wi < words.length - 1) el.appendChild(document.createTextNode(' '));
+  });
+  return i;
+}
+
+let letterIndex = 0;
+document.querySelectorAll('[data-split]').forEach(el => {
+  letterIndex = splitText(el, 'chars', letterIndex);
+});
+document.querySelectorAll('[data-split-words]').forEach(el => splitText(el, 'words', 0));
+
+/* ================= POINTER + SCROLL STATE ================= */
+const cursorEl = canFine && !reduceMotion ? document.querySelector('.cursor') : null;
+const skewEl = document.getElementById('skew');
+
+let tx = 0, ty = 0, mx = 0, my = 0;
+let px = window.innerWidth / 2, py = window.innerHeight / 2;
+let cx = px, cy = py;
+let scrollP = 0, lastY = window.scrollY, scrollVel = 0, skew = 0;
+
+window.addEventListener('pointermove', e => {
+  tx = (e.clientX / window.innerWidth) * 2 - 1;
+  ty = (e.clientY / window.innerHeight) * 2 - 1;
+  px = e.clientX;
+  py = e.clientY;
+  if (cursorEl) cursorEl.classList.add('on');
+  if (!reduceMotion) {
+    root.style.setProperty('--px', tx.toFixed(3));
+    root.style.setProperty('--py', ty.toFixed(3));
+  }
+}, { passive: true });
+
+window.addEventListener('scroll', () => {
+  scrollP = Math.min(1, window.scrollY / Math.max(1, window.innerHeight));
+  scrollVel += window.scrollY - lastY;
+  lastY = window.scrollY;
+}, { passive: true });
+
+/* ================= HOLOGRAM SCENE ================= */
+const LOGO_PATHS = [
+  "M88 178 L315 178 L471 450 L493 413 L800 413 L767 471 L687 471 L471 845 Z",
+  "M629 178 L936 178 L903 237 L596 237 Z",
+  "M562 296 L869 296 L836 355 L528 355 Z"
+];
+
+let sceneReady = false;
+let renderer, composer, bloom, scene, camera, holo, grid, dust;
+let logoMat, streamMat, beamMat, glowMat, ringMat;
+let baseX = 0, baseY = 0, baseS = 1, halfW = 4, halfH = 3;
+let mlx = 0, mly = 0;
+const introStart = performance.now();
+const INTRO_MS = reduceMotion ? 1 : 3400;
+let nextGlitch = 3.5, glitchEnd = 0, glitchY = 0;
+
+// Logo -> dots in a volume. Each dot gets a random start point so the logo assembles on load.
+function buildLogoGeometry() {
+  const S = 512, WORLD = 3.2, STEP = 5;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  g.setTransform(S / 1024, 0, 0, S / 1024, 0, 0);
+  g.fillStyle = '#fff';
+  LOGO_PATHS.forEach(d => g.fill(new Path2D(d)));
+  const img = g.getImageData(0, 0, S, S).data;
+  const solid = (x, y) => x >= 0 && y >= 0 && x < S && y < S && img[(y * S + x) * 4 + 3] > 128;
+
+  const layers = [-0.42, -0.25, -0.08, 0.08, 0.25, 0.42];
+  const pos = [], start = [], rnd = [], bri = [], delay = [];
+
+  for (let y = 0; y < S; y += STEP) {
+    for (let x = 0; x < S; x += STEP) {
+      if (!solid(x, y)) continue;
+      const edge = !solid(x - STEP, y) || !solid(x + STEP, y) || !solid(x, y - STEP) || !solid(x, y + STEP);
+      const wx = (x / S - 0.5) * WORLD;
+      const wy = -(y / S - 0.5) * WORLD;
+      for (const z of layers) {
+        pos.push(
+          wx + (Math.random() - 0.5) * 0.012,
+          wy + (Math.random() - 0.5) * 0.012,
+          z + (Math.random() - 0.5) * 0.02
+        );
+        const r = 2.6 + Math.random() * 2.4;
+        const th = Math.random() * Math.PI * 2;
+        const ph = Math.acos(2 * Math.random() - 1);
+        start.push(r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph) * 0.7, r * Math.sin(ph) * Math.sin(th));
+        rnd.push(Math.random());
+        bri.push(edge || Math.random() < 0.05 ? 1 : 0);
+        delay.push(Math.random());
+      }
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('aStart', new THREE.Float32BufferAttribute(start, 3));
+  geo.setAttribute('aRand', new THREE.Float32BufferAttribute(rnd, 1));
+  geo.setAttribute('aBright', new THREE.Float32BufferAttribute(bri, 1));
+  geo.setAttribute('aDelay', new THREE.Float32BufferAttribute(delay, 1));
+  return geo;
+}
+
+function initScene() {
+  renderer = new THREE.WebGLRenderer({
+    canvas: document.getElementById('scene'),
+    antialias: false,
+    powerPreference: 'high-performance'
+  });
+  renderer.setClearColor(0x000000, 1);
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x000000, 0.045);
+
+  camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  camera.position.set(0, 0.6, 8);
+  camera.lookAt(0, 0, 0);
+
+  // Post-processing: bloom makes the dots glow like light
+  composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.9, 0.4, 0.3);
+  composer.addPass(bloom);
+  composer.addPass(new OutputPass());
+
+  // Floor
+  grid = new THREE.GridHelper(90, 90, 0x6a6a6a, 0x242424);
+  grid.position.y = -2.7;
+  scene.add(grid);
+
+  holo = new THREE.Group();
+  scene.add(holo);
+
+  // Logo shader: assembly intro, cursor repulsion, glitch bands, living surface
+  logoMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uPR: { value: 1 },
+      uIntro: { value: reduceMotion ? 1 : 0 },
+      uFade: { value: 1 },
+      uGlitch: { value: 0 },
+      uGlitchY: { value: 0 },
+      uMouse: { value: new THREE.Vector2(0, 0) }
+    },
+    vertexShader: `
+      attribute vec3 aStart;
+      attribute float aRand;
+      attribute float aBright;
+      attribute float aDelay;
+      uniform float uTime;
+      uniform float uPR;
+      uniform float uIntro;
+      uniform float uGlitch;
+      uniform float uGlitchY;
+      uniform vec2 uMouse;
+      varying float vA;
+      varying float vY;
+      void main() {
+        float k = clamp((uIntro - aDelay * 0.45) / 0.55, 0.0, 1.0);
+        float e = 1.0 - pow(1.0 - k, 3.0);
+        vec3 p = mix(aStart, position, e);
+
+        p.x += sin(uTime * 0.9 + p.y * 5.0 + aRand * 6.2831) * 0.01 * e;
+        p.z += sin(uTime * 1.3 + aRand * 12.0) * 0.025 * e;
+
+        float band = 1.0 - smoothstep(0.0, 0.07, abs(p.y - uGlitchY));
+        p.x += band * uGlitch * (aRand - 0.5) * 0.5;
+
+        vec2 d = p.xy - uMouse;
+        float f = exp(-dot(d, d) * 4.0) * e;
+        p.xy += normalize(d + vec2(1e-4)) * f * 0.22;
+
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        gl_Position = projectionMatrix * mv;
+        gl_PointSize = (aBright > 0.5 ? 4.2 : 2.6) * uPR * (9.0 / -mv.z);
+
+        float flick = 0.55 + 0.45 * sin(uTime * 3.0 + aRand * 40.0);
+        float depth = clamp((p.z + 0.45) / 0.9, 0.0, 1.0);
+        vA = flick * (0.35 + 0.65 * depth) * (0.15 + 0.85 * e) * (1.0 + f * 1.2);
+        vY = p.y;
+      }
+    `,
+    fragmentShader: `
+      uniform float uTime;
+      uniform float uFade;
+      varying float vA;
+      varying float vY;
+      void main() {
+        float d = length(gl_PointCoord - vec2(0.5));
+        if (d > 0.5) discard;
+        float a = smoothstep(0.5, 0.05, d);
+        float scan = 0.7 + 0.3 * sin(vY * 45.0 - uTime * 3.0);
+        gl_FragColor = vec4(1.0, 1.0, 1.0, a * vA * scan * uFade);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  holo.add(new THREE.Points(buildLogoGeometry(), logoMat));
+
+  // Data stream: dots spiral up from the projector through the logo
+  const SN = 1100;
+  const seed = new Float32Array(SN), ang = new Float32Array(SN);
+  for (let i = 0; i < SN; i++) {
+    seed[i] = Math.random();
+    ang[i] = Math.random() * Math.PI * 2;
+  }
+  const streamGeo = new THREE.BufferGeometry();
+  streamGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SN * 3), 3));
+  streamGeo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+  streamGeo.setAttribute('aAng', new THREE.BufferAttribute(ang, 1));
+  streamMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uPR: { value: 1 }, uFade: { value: 1 } },
+    vertexShader: `
+      attribute float aSeed;
+      attribute float aAng;
+      uniform float uTime;
+      uniform float uPR;
+      varying float vA;
+      void main() {
+        float y = mod(aSeed + uTime * 0.09, 1.0);
+        float Y = y * 4.0 - 2.0;
+        float r = mix(2.2, 0.5, y);
+        float a = aAng + uTime * 0.6 + y * 5.0;
+        vec3 p = vec3(cos(a) * r, Y, sin(a) * r);
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        gl_Position = projectionMatrix * mv;
+        gl_PointSize = 2.2 * uPR * (9.0 / -mv.z);
+        vA = sin(y * 3.14159) * 0.8;
+      }
+    `,
+    fragmentShader: `
+      uniform float uFade;
+      varying float vA;
+      void main() {
+        float d = length(gl_PointCoord - vec2(0.5));
+        if (d > 0.5) discard;
+        gl_FragColor = vec4(1.0, 1.0, 1.0, smoothstep(0.5, 0.1, d) * vA * uFade);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  const stream = new THREE.Points(streamGeo, streamMat);
+  stream.frustumCulled = false;
+  holo.add(stream);
+
+  // Projector beam
+  beamMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uFade: { value: 1 } },
+    vertexShader: `
+      varying float vH;
+      void main() {
+        vH = position.y;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float uTime;
+      uniform float uFade;
+      varying float vH;
+      void main() {
+        float band = 0.65 + 0.35 * sin(vH * 14.0 - uTime * 2.2);
+        float a = ((vH + 2.0) / 4.0) * 0.09 * band * uFade;
+        gl_FragColor = vec4(1.0, 1.0, 1.0, a);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide
+  });
+  holo.add(new THREE.Mesh(new THREE.CylinderGeometry(1.9, 0.25, 4.0, 48, 1, true), beamMat));
+
+  // Light pool on the floor
+  glowMat = new THREE.ShaderMaterial({
+    uniforms: { uFade: { value: 1 } },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float uFade;
+      varying vec2 vUv;
+      void main() {
+        float d = length(vUv - 0.5) * 2.0;
+        float a = pow(max(0.0, 1.0 - d), 2.2) * 0.22 * uFade;
+        gl_FragColor = vec4(1.0, 1.0, 1.0, a);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  const glow = new THREE.Mesh(new THREE.CircleGeometry(2.8, 64), glowMat);
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.y = -2.0;
+  holo.add(glow);
+
+  // Ring of dots around the projector base
+  const ringPts = [];
+  for (let i = 0; i < 360; i++) {
+    const a = (i / 360) * Math.PI * 2;
+    ringPts.push(Math.cos(a) * 2.3, 0, Math.sin(a) * 2.3);
+  }
+  const ringGeo = new THREE.BufferGeometry();
+  ringGeo.setAttribute('position', new THREE.Float32BufferAttribute(ringPts, 3));
+  ringMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.035, transparent: true, opacity: 0.55, depthWrite: false });
+  const ring = new THREE.Points(ringGeo, ringMat);
+  ring.position.y = -2.0;
+  holo.add(ring);
+
+  // Dust
+  const dustPts = [];
+  for (let i = 0; i < 700; i++) {
+    const r = 2.8 + Math.random() * 4.5;
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(2 * Math.random() - 1);
+    dustPts.push(r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph) * 0.6, r * Math.sin(ph) * Math.sin(th));
+  }
+  const dustGeo = new THREE.BufferGeometry();
+  dustGeo.setAttribute('position', new THREE.Float32BufferAttribute(dustPts, 3));
+  dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+    color: 0xffffff, size: 0.025, transparent: true, opacity: 0.45, depthWrite: false
+  }));
+  scene.add(dust);
+
+  sceneReady = true;
+  layout();
+  window.addEventListener('resize', layout);
+}
+
+function layout() {
+  const w = window.innerWidth, h = window.innerHeight;
+  const small = w <= 760;
+  const pr = Math.min(window.devicePixelRatio || 1, small ? 1.5 : 2);
+
+  renderer.setPixelRatio(pr);
+  renderer.setSize(w, h, false);
+  composer.setPixelRatio(pr);
+  composer.setSize(w, h);
+  bloom.enabled = !small;
+
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+
+  halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
+  halfW = halfH * camera.aspect;
+
+  if (small) {
+    baseX = 0; baseY = halfH * 0.5; baseS = 0.6;
+  } else {
+    baseX = halfW * 0.42; baseY = 0.05; baseS = 1;
+  }
+
+  logoMat.uniforms.uPR.value = pr;
+  streamMat.uniforms.uPR.value = pr;
+}
+
+function updateScene(now, real, t) {
+  const intro = Math.min(1, (now - introStart) / INTRO_MS);
+  const fade = 1 - smooth01(0.15, 0.85, scrollP);
+
+  if (!reduceMotion && real > nextGlitch) {
+    glitchEnd = real + 0.16;
+    glitchY = (Math.random() - 0.5) * 3.0;
+    nextGlitch = real + 1.8 + Math.random() * 3.2;
+  }
+
+  // Pointer in logo-local space, for the repel effect
+  const targetMX = (tx * halfW - baseX) / baseS;
+  const targetMY = (-ty * halfH - baseY) / baseS;
+  mlx += (targetMX - mlx) * 0.1;
+  mly += (targetMY - mly) * 0.1;
+
+  logoMat.uniforms.uTime.value = t;
+  logoMat.uniforms.uIntro.value = intro;
+  logoMat.uniforms.uFade.value = fade;
+  logoMat.uniforms.uGlitch.value = real < glitchEnd ? 1 : 0;
+  logoMat.uniforms.uGlitchY.value = glitchY;
+  logoMat.uniforms.uMouse.value.set(mlx, mly);
+
+  streamMat.uniforms.uTime.value = t;
+  streamMat.uniforms.uFade.value = fade * smooth01(0.35, 1, intro);
+  beamMat.uniforms.uTime.value = t;
+  beamMat.uniforms.uFade.value = fade * smooth01(0.2, 0.9, intro);
+  glowMat.uniforms.uFade.value = fade * smooth01(0.3, 1, intro);
+  ringMat.opacity = (0.4 + 0.2 * Math.sin(t * 2)) * fade;
+  bloom.strength = 0.6 + 0.5 * intro;
+
+  holo.position.set(baseX, baseY + Math.sin(t * 0.6) * 0.05, scrollP * 1.2);
+  holo.scale.setScalar(baseS * (1 - scrollP * 0.12));
+  holo.rotation.set(-0.12 + my * 0.25, Math.sin(t * 0.25) * 0.35 + mx * 0.6 + scrollP * 1.4, 0);
+
+  dust.rotation.y = t * 0.02;
+  grid.position.z = -((t * 0.6) % 1);
+
+  camera.position.x = mx * 0.4;
+  camera.position.y = 0.6 - my * 0.25;
+  camera.lookAt(0, 0, 0);
+}
+
+/* ================= MAIN LOOP ================= */
+const skewTrack = skewEl;
+function frame(now) {
+  const real = now / 1000;
+  const t = real * SPEED;
+
+  mx += (tx - mx) * 0.05;
+  my += (ty - my) * 0.05;
+
+  // Marquee skews with scroll speed, then settles
+  scrollVel *= 0.88;
+  skew += (Math.max(-6, Math.min(6, scrollVel * 0.6)) - skew) * 0.12;
+  skewTrack.style.setProperty('--skew', skew.toFixed(2));
+
+  // Custom cursor follows with a little lag
+  if (cursorEl) {
+    cx += (px - cx) * 0.22;
+    cy += (py - cy) * 0.22;
+    cursorEl.style.transform = `translate3d(${cx.toFixed(1)}px,${cy.toFixed(1)}px,0)`;
+  }
+
+  if (sceneReady) {
+    updateScene(now, real, t);
+    composer.render();
+  }
+  requestAnimationFrame(frame);
+}
+
+try {
+  initScene();
+} catch (err) {
+  // No WebGL: the page still works, only the 3D background is missing
+  console.warn('3D scene unavailable:', err);
+  root.classList.add('no-gl');
+  sceneReady = false;
+}
+requestAnimationFrame(frame);
+
+/* ================= CURSOR HOVER STATE ================= */
+if (cursorEl) {
+  const hoverSel = 'a,button,.tile,.price-row,.help-item';
+  window.addEventListener('pointerover', e => {
+    if (e.target.closest(hoverSel)) cursorEl.classList.add('hover');
+  });
+  window.addEventListener('pointerout', e => {
+    if (!e.relatedTarget || !e.relatedTarget.closest(hoverSel)) cursorEl.classList.remove('hover');
+  });
+}
+
+/* ================= MAGNETIC BUTTONS + 3D TILT ================= */
+if (canFine && !reduceMotion) {
+  document.querySelectorAll('[data-magnetic]').forEach(btn => {
+    btn.addEventListener('pointermove', e => {
+      const r = btn.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width / 2;
+      const y = e.clientY - r.top - r.height / 2;
+      btn.style.setProperty('--mx', (x * 0.25).toFixed(1) + 'px');
+      btn.style.setProperty('--my', (y * 0.3).toFixed(1) + 'px');
+    });
+    btn.addEventListener('pointerleave', () => {
+      btn.style.setProperty('--mx', '0px');
+      btn.style.setProperty('--my', '0px');
+    });
+  });
+
+  document.querySelectorAll('[data-tilt]').forEach(el => {
+    el.addEventListener('pointermove', e => {
+      const r = el.getBoundingClientRect();
+      const px2 = (e.clientX - r.left) / r.width - 0.5;
+      const py2 = (e.clientY - r.top) / r.height - 0.5;
+      el.style.setProperty('--rx', (-py2 * 6).toFixed(2) + 'deg');
+      el.style.setProperty('--ry', (px2 * 8).toFixed(2) + 'deg');
+    });
+    el.addEventListener('pointerleave', () => {
+      el.style.setProperty('--rx', '0deg');
+      el.style.setProperty('--ry', '0deg');
+    });
+  });
+}
+
+/* ================= SCROLL REVEALS ================= */
+const revealEls = document.querySelectorAll('.reveal, .split-in');
+if (reduceMotion || !('IntersectionObserver' in window)) {
+  revealEls.forEach(el => el.classList.add('in'));
+} else {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        en.target.classList.add('in');
+        io.unobserve(en.target);
+      }
+    });
+  }, { threshold: 0.2 });
+  revealEls.forEach(el => io.observe(el));
+}
+
+/* ================= MENU PANELS ================= */
+const buttons = document.querySelectorAll('.menu-btn');
+const panels = document.querySelectorAll('.panel');
+
+buttons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = document.getElementById(btn.dataset.panel);
+    const wasOpen = btn.getAttribute('aria-expanded') === 'true';
+
+    buttons.forEach(b => b.setAttribute('aria-expanded', 'false'));
+    panels.forEach(p => p.classList.remove('active'));
+
+    if (!wasOpen) {
+      btn.setAttribute('aria-expanded', 'true');
+      target.classList.add('active');
+      setTimeout(() => {
+        target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+      }, 60);
+    }
+  });
+});
+
+/* ================= WORKS: 3D RING CAROUSEL ================= */
+const ringEl = document.getElementById('ring');
+const N = 4;
+let slide = 0, ringPaused = false;
+
+function goTo(i) {
+  slide = ((i % N) + N) % N;
+  ringEl.style.transform = `rotateY(${-slide * 90}deg)`;
+}
+document.getElementById('prev').addEventListener('click', () => goTo(slide - 1));
+document.getElementById('next').addEventListener('click', () => goTo(slide + 1));
+
+const stageEl = document.querySelector('.stage');
+stageEl.addEventListener('pointerenter', () => { ringPaused = true; });
+stageEl.addEventListener('pointerleave', () => { ringPaused = false; });
+
+goTo(0);
+if (!reduceMotion) {
+  setInterval(() => {
+    if (!ringPaused && document.getElementById('works').classList.contains('active')) goTo(slide + 1);
+  }, 4200);
+}
+</script>
+</body>
+</html>
